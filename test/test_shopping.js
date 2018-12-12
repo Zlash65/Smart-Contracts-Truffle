@@ -91,4 +91,25 @@ contract("ShoppingSmartContract", function (accounts) {
 		});
 	});
 
+	it("check buying product", function () {
+		return ShoppingSmartContract.deployed().then(function (instance) {
+			shopping = instance;
+
+			return shopping.BuyContent(products[0], {from: accounts[3], value: 5});
+		}).then(assert.fail).catch(function(error) {
+			// catch price not matched error
+			assert(error.message.indexOf('Product price does not match with paid value.') >= 0, "Product price does not match with paid value.");
+
+			var temp_product = '0x7034000000000000000000000000000000000000000000000000000000000000';
+			return shopping.BuyContent(temp_product, {from: accounts[3], value: 5});
+		}).then(assert.fail).catch(function(error) {
+			// catch product not found error
+			assert(error.message.indexOf('Product with given id does not exist.') >= 0, "Product with given id does not exist.");
+
+			// use buyer 1 to buy 2 products
+			shopping.BuyContent(products[0], {from: accounts[3], value: 10});
+			shopping.BuyContent(products[1], {from: accounts[3], value: 10});
+		});
+	});
+
 })
