@@ -112,4 +112,37 @@ contract("ShoppingSmartContract", function (accounts) {
 		});
 	});
 
+	it("check if an address had bought any particular product", function () {
+		return ShoppingSmartContract.deployed().then(function (instance) {
+			shopping = instance;
+
+			return shopping.BuyCheck(accounts[3], products[0], {from: accounts[3]});
+		}).then(assert.fail).catch(function(error) {
+			// catch onlyAdmin modifier's error
+			assert(error.message.indexOf('Admin access required') >= 0, "Admin access required");
+
+			var temp_product = '0x7034000000000000000000000000000000000000000000000000000000000000';
+
+			return shopping.BuyCheck(accounts[3], temp_product, {from: accounts[0]});
+		}).then(assert.fail).catch(function(error) {
+			// catch product does not exist error
+			assert(error.message.indexOf('Product with given id does not exist.') >= 0, "Product with given id does not exist.");
+
+			return shopping.BuyCheck(accounts[3], products[0], {from: accounts[0]});
+		}).then(function(receipt) {
+			// catch the return status for BuyCheck for products[0]
+			assert.equal(receipt.logs[0].args.status, true, "get status as true");
+
+			return shopping.BuyCheck(accounts[3], products[1], {from: accounts[0]});
+		}).then(function(receipt) {
+			// catch the return status for BuyCheck for products[1]
+			assert.equal(receipt.logs[0].args.status, true, "get status as true");
+
+			return shopping.BuyCheck(accounts[3], products[2], {from: accounts[0]});
+		}).then(function(receipt) {
+			// catch the return status for BuyCheck for products[1]
+			assert.equal(receipt.logs[0].args.status, false, "get status as false");
+		});
+	});
+
 })
