@@ -54,4 +54,41 @@ contract("ShoppingSmartContract", function (accounts) {
 		});
 	});
 
+	it("Add product", function () {
+		return ShoppingSmartContract.deployed().then(function (instance) {
+			shopping = instance;
+
+			return shopping.AddProduct(products[0], '10', {from: accounts[3]});
+		}).then(assert.fail).catch(function(error) {
+			// catch onlyWhitelistedSeller modifier's error
+			assert(error.message.indexOf('Seller does not exist') >= 0, "Seller does not exist");
+
+			return shopping.AddProduct(products[0], '10', {from: accounts[2]});
+		}).then(assert.fail).catch(function(error) {
+			// catch onlyWhitelistedSeller modifier's error
+			assert(error.message.indexOf('Only whitelisted Seller can add products') >= 0, "Only whitelisted Seller can add products");
+
+			// add product p1 from seller 1
+			shopping.AddProduct(products[0], '10', {from: accounts[1]});
+
+			return shopping.products(products[0]);
+		}).then(function (product) {
+			assert.equal(product[0], products[0], "Product Added successfully.");
+
+			return shopping.AddProduct(products[0], '10', {from: accounts[1]});
+		}).then(assert.fail).catch(function(error) {
+			// catch product already added error
+			assert(error.message.indexOf('Product with the given id already exist.') >= 0, "Product with the given id already exist.");
+
+			return shopping.productCount();
+		}).then(function (count) {
+			// check product count
+			assert.equal(count.toNumber(), 1, 'Product count updated successfully.')
+
+			// add another products for further testing
+			shopping.AddProduct(products[1], '10', {from: accounts[1]});
+			shopping.AddProduct(products[2], '10', {from: accounts[1]});
+		});
+	});
+
 })
