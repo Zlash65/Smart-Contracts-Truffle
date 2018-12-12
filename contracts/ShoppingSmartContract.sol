@@ -14,13 +14,15 @@ contract ShoppingSmartContract {
 		bytes32 productId;
 		uint256 price;
 	}
+
+	event buyCheckStatus(bool status);
     
-	mapping(address => Seller) sellers; // sellers mapping
-	mapping(bytes32 => Product) products; // products mapping
+	mapping(address => Seller) public sellers; // sellers mapping
+	mapping(bytes32 => Product) public products; // products mapping
 	// 	mapping(address => bytes32) productSold; // sold history mapping
-	mapping(address => bytes32[]) productSold; // sold history mapping
-	address admin;
-	uint32 productCount;
+	mapping(address => bytes32[]) public productSold; // sold history mapping
+	address  public admin;
+	uint32 public productCount;
 
 	// modifier to check if its an admin account
 	modifier onlyAdmin() {
@@ -88,15 +90,16 @@ contract ShoppingSmartContract {
 	function BuyCheck(address from, bytes32 _id) public onlyAdmin returns (bool status) {
 // 		return productSold[from] == _id;
 
-		// validate if the product id exist or not
 		require(products[_id].productId[0]!=0, "Product with given id does not exist.");
 
 		for (uint i = 0; i < productSold[from].length; i++) {
-			if(productSold[from][i] == _id){
+			if(productSold[from][i] == _id) {
+				emit buyCheckStatus(true);
 				return true;
 			}
 		}
         
+		emit buyCheckStatus(false);
 		return false;
 	}
 
